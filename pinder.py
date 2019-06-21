@@ -5,8 +5,13 @@ import cv2
 import glob
 import numpy as np
 import os
+import pandas as pd
 import sys
 import time
+
+
+SQUARE_SIZE = 64
+VIEWPORT_SIZE = 512
 
 
 def print_intro():
@@ -53,36 +58,79 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
     out_dir_path = os.path.dirname(out_dir_path)
     os.makedirs(out_dir_path, exist_ok=True)
+    os.makedirs(os.path.join(out_dir_path, "images"), exist_ok=True)
 
-    positives = []
-    negatives = []
+    data = {"path": [], "label": []}
 
     for img_path in glob.glob(os.path.join(in_dir_path, "*.jpg")):
         img = cv2.imread(img_path)
 
-        cv2.imshow("Pinder", img)
+        pad_size = (VIEWPORT_SIZE - SQUARE_SIZE) // 2
+        pad_size_pair = (pad_size, pad_size)
+        padded_img = np.pad(img, (pad_size_pair, pad_size_pair, (0, 0)), "constant")
 
-        while True:
-            pressed_key = cv2.waitKey(0)
+        height, width, _ = img.shape
 
-            if pressed_key == 122:
-                positives.append(
-                    {
-                        "path": img_path,
-                        "rois": cv2.selectROIs(
-                            "Pinder", img, fromCenter=False
-                        ).tolist(),
-                    }
+        num_rows = height // SQUARE_SIZE
+        num_columns = width // SQUARE_SIZE
+
+        x_origin = (width - (num_columns * SQUARE_SIZE)) // 2
+        y_origin = (height - (num_rows * SQUARE_SIZE)) // 2
+
+        for i in range(num_rows):
+            for j in range(num_columns):
+                x1, y1 = (x_origin + (j * SQUARE_SIZE), y_origin + (i * SQUARE_SIZE))
+                x2, y2 = (x1 + SQUARE_SIZE, y1 + SQUARE_SIZE)
+
+                square_img = img[y1:y2, x1:x2]
+                viewport_img = padded_img[
+                    y1 : y2 + pad_size * 2, x1 : x2 + pad_size * 2
+                ].copy()
+
+                square_rect_start = VIEWPORT_SIZE // 2 - (SQUARE_SIZE // 2)
+                square_rect_end = VIEWPORT_SIZE // 2 + (SQUARE_SIZE // 2)
+                cv2.rectangle(
+                    viewport_img,
+                    (square_rect_start, square_rect_start),
+                    (square_rect_end, square_rect_end),
+                    (255, 0, 255),
                 )
-                break
-            elif pressed_key == 47:
-                negatives.append(
-                    {"path": img_path, "rois": [[0, 0, img.shape[1], img.shape[0]]]}
-                )
-                break
 
-    print("Positives: {}".format(positives))
-    print("Negatives: {}".format(negatives))
+                focus_rect_start = int(VIEWPORT_SIZE // 2 - (SQUARE_SIZE // 3.5))
+                focus_rect_end = int(VIEWPORT_SIZE // 2 + (SQUARE_SIZE // 3.5))
+                cv2.rectangle(
+                    viewport_img,
+                    (focus_rect_start, focus_rect_start),
+                    (focus_rect_end, focus_rect_end),
+                    (255, 255, 0),
+                )
+
+                cv2.imshow("Pinder", viewport_img)
+
+                data_path = os.path.join(
+                    out_dir_path,
+                    "images",
+                    "{}-{},{}.jpg".format(
+                        os.path.splitext(os.path.basename(img_path))[0], i, j
+                    ),
+                )
+
+                while True:
+                    pressed_key = cv2.waitKey(0)
+
+                    if pressed_key == 0x7A:
+                        data["path"].append(data_path)
+                        data["label"].append(1)
+                        cv2.imwrite(data_path, square_img)
+                        break
+                    elif pressed_key == 0x2F:
+                        data["path"].append(data_path)
+                        data["label"].append(0)
+                        cv2.imwrite(data_path, square_img)
+                        break
+
+    df = pd.DataFrame(data)
+    df.to_csv(os.path.join(out_dir_path, "annotations.csv"), index=False)
 
 
 if __name__ == "__main__":

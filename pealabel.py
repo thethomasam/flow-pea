@@ -13,6 +13,10 @@ import time
 SQUARE_SIZE = 64
 
 
+pos_count = 0
+neg_count = 0
+
+
 def print_intro():
     """Absolutely critical to the functionality of the script."""
 
@@ -47,6 +51,8 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
     """
 
+    global pos_count, neg_count
+
     print_intro()
 
     if not os.path.isdir(in_dir_path):
@@ -66,15 +72,32 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
     for img_path in glob.glob(os.path.join(in_dir_path, "*.jpg")):
         img = cv2.imread(img_path)
+        img_copy = img.copy()
+
+        height, width, _ = img.shape
 
         def on_mouse(event: int, x: int, y: int, flags: int, param: any):
+            global pos_count, neg_count
             if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_RBUTTONDOWN:
                 label = 0 if event == cv2.EVENT_LBUTTONDOWN else 1
 
-                x1, y1 = (x - (SQUARE_SIZE // 2), y - (SQUARE_SIZE // 2))
-                x2, y2 = (x + (SQUARE_SIZE // 2), y + (SQUARE_SIZE // 2))
+                half_square_size = SQUARE_SIZE // 2
 
-                square_img = img[y1:y2, x1:x2]
+                if x < half_square_size:
+                    x = half_square_size
+                if x > width - half_square_size:
+                    x = width - half_square_size
+                if y < half_square_size:
+                    y = half_square_size
+                if y > height - half_square_size:
+                    y = height - half_square_size
+
+                x1, y1 = (x - half_square_size, y - half_square_size)
+                x2, y2 = (x + half_square_size, y + half_square_size)
+
+                print("{},{} {},{}".format(x1, y1, x2, y2))
+
+                square_img = img_copy[y1:y2, x1:x2]
 
                 path = os.path.join(
                     "images",
@@ -88,6 +111,11 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
                     ),
                 )
 
+                if event == cv2.EVENT_LBUTTONDOWN:
+                    neg_count += 1
+                else:
+                    pos_count += 1
+
                 cv2.rectangle(
                     img,
                     (x1, y1),
@@ -95,6 +123,7 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
                     (0, 0, 255) if event == cv2.EVENT_LBUTTONDOWN else (0, 255, 0),
                     thickness=4,
                 )
+
                 cv2.imshow("Pinder", img)
 
                 data["path"].append(path)
@@ -108,6 +137,15 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
             pressed_key = cv2.waitKey(0)
 
             if pressed_key == 0x20:
+                if pos_count != neg_count:
+                    print(
+                        "Label mismatch! {} positives to {} negatives.".format(
+                            pos_count, neg_count
+                        )
+                    )
+                    continue
+                pos_count = 0
+                neg_count = 0
                 break
             if pressed_key == 0x1B:
                 df = pd.DataFrame(data)

@@ -7,7 +7,10 @@ import numpy as np
 import os
 import pandas as pd
 import sys
+import tensorflow as tf
 import time
+
+from random import randint
 
 
 SQUARE_SIZE = 64
@@ -55,6 +58,8 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
     print_intro()
 
+    nn_model = tf.keras.models.load_model(os.path.join("models", "fababeans-64.h5"))
+
     if not os.path.isdir(in_dir_path):
         print(
             "\033[91mError\033[00m: Given `in_dir_path` doesn't exist.", file=sys.stderr
@@ -83,6 +88,9 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
                 half_square_size = SQUARE_SIZE // 2
 
+                x += randint(-half_square_size, half_square_size)
+                y += randint(-half_square_size, half_square_size)
+
                 if x < half_square_size:
                     x = half_square_size
                 if x > width - half_square_size:
@@ -94,8 +102,6 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
 
                 x1, y1 = (x - half_square_size, y - half_square_size)
                 x2, y2 = (x + half_square_size, y + half_square_size)
-
-                print("{},{} {},{}".format(x1, y1, x2, y2))
 
                 square_img = img_copy[y1:y2, x1:x2]
 
@@ -129,6 +135,26 @@ def cli(in_dir_path: str, out_dir_path: str, verbose: bool):
                 data["path"].append(path)
                 data["label"].append(label)
                 cv2.imwrite(os.path.join(out_dir_path, path), square_img)
+
+        # for _ in range(10000):
+        #     x1, y1 = (
+        #         randint(0, width - SQUARE_SIZE - 1),
+        #         randint(0, height - SQUARE_SIZE - 1),
+        #     )
+        #     x2, y2 = (x1 + SQUARE_SIZE, y1 + SQUARE_SIZE)
+
+        #     subcell_img = img[y1:y2, x1:x2] / 255.0
+
+        #     prediction = nn_model.predict(np.asarray([subcell_img]))
+
+        #     if not prediction[0][0] > prediction[0][1]:
+        #         cv2.circle(
+        #             img,
+        #             (x1 + SQUARE_SIZE // 2, y1 + SQUARE_SIZE // 2),
+        #             32,
+        #             (255, 0, 255),
+        #             1,
+        #         )
 
         cv2.imshow("Pinder", img)
         cv2.setMouseCallback("Pinder", on_mouse)

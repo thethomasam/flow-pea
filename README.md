@@ -38,44 +38,54 @@ The script offers various options to run the training, analysis, and labelling s
 
 This automated plant analysis workflow showcases the seamless integration of data acquisition, model training, analysis, and insights generation. By combining deep learning models with efficient tools, the script addresses the challenges of plant disease identification and contributes to advancing agricultural practices.
 
+# How to Run the Workflow
+## Data Preparation:
 
-Data Preparation:
+1. Place your raw drone-acquired images in the directory specified as `peascription_in_dir_path` (e.g., "./images/peascription-in/").
 
-Place your raw drone-acquired images in the directory specified as peascription_in_dir_path (e.g., "./images/peascription-in/").
-Running the Script:
+## Running the Script:
 
-Open your terminal or command prompt.
-Navigate to the directory containing the Python script.
-Execute the Script:
+1. Open your terminal or command prompt.
+2. Navigate to the directory containing the Python script.
 
-Run the script by entering the command: pytho flow-pea.py 
+## Execute the Script:
+
+1. Run the script by entering the command: `python script_name.py` (replace `script_name.py` with the actual name of your script).
+
+## Workflow Execution:
 
 The script will guide you through different steps of the automated plant analysis workflow:
 
-a. Data Preprocessing:
+### a. Data Preprocessing:
 
-Images from peascription_in_dir_path will be processed and annotated, generating a composite image with red dots marking plant locations.
-b. Model Training:
+- Images from `peascription_in_dir_path` will be processed and annotated, generating a composite image with red dots marking plant locations.
 
-You'll be prompted to run the model training step (trainner).
-Choose Y or y to start training the selected model (ResNet or Transformer).
-c. Analysis:
+### b. Model Training:
 
-The script will run the peatearer module for image analysis.
-You can specify the path to an image for analysis and choose Transformer or ResNet.
-d. Labeling:
+- You'll be prompted to run the model training step (`trainner`).
+- Choose `Y` or `y` to start training the selected model (ResNet or Transformer).
 
-You'll be prompted to run the labeling step (pealabler).
-Choose Y or y to start labeling analyzed images.
-e. Re-training (Optional):
+### c. Analysis:
 
-If desired, you can choose to re-train the model after labeling.
-Workflow Output:
+- The script will run the `peatearer` module for image analysis.
+- You can specify the path to an image for analysis and choose Transformer or ResNet.
 
-Processed images, annotations, and analyzed images will be saved in respective output directories.
-Model checkpoints and training logs will be saved in the model_output directory.
-Usage Tips:
+### d. Labeling:
 
-Customize parameters in the script according to your data and requirements.
-Use the GUI for labeling to mark positive/negative examples.
-Use the orchestrator script to automate the entire workflow or specific steps.
+- You'll be prompted to run the labeling step (`pealabler`).
+- Choose `Y` or `y` to start labeling analyzed images.
+
+### e. Re-training (Optional):
+
+- If desired, you can choose to re-train the model after labeling.
+
+## Workflow Output:
+
+- Processed images, annotations, and analyzed images will be saved in respective output directories.
+- Model checkpoints and training logs will be saved in the `model_output` directory.
+
+## Usage Tips:
+
+- Customize parameters in the script according to your data and requirements.
+- Use the GUI for labeling to mark positive/negative examples.
+- Use the orchestrator script to automate the entire workflow or specific steps.

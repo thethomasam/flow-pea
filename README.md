@@ -50,8 +50,7 @@ This automated plant analysis workflow showcases the seamless integration of dat
 
 ## Execute the Script:
 
-1. Run the script by entering the command: `python script_name.py` (replace `script_name.py` with the actual name of your script).
-
+1. Run the script by entering the command: `python flow-pea.py`
 ## Workflow Execution:
 
 The script will guide you through different steps of the automated plant analysis workflow:
